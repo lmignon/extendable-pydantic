@@ -64,15 +64,6 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
     ###############################################################
     # concrete methods provided to the final class by the metaclass
     ###############################################################
-    def update_forward_refs(cls, **localns: Any) -> None:
-        for b in cls.__bases__:
-            if issubclass(b, BaseModel):
-                b.update_forward_refs(**localns)
-        if issubclass(cls, BaseModel):
-            cast(BaseModel, super()).update_forward_refs(**localns)
-        if hasattr(cls, "_original_cls") and issubclass(cls, BaseModel):
-            cast(BaseModel, cls._original_cls).update_forward_refs(**localns)
-
     def _resolve_submodel_fields(
         cls, registry: Optional[ExtendableClassesRegistry] = None
     ) -> None:
@@ -102,8 +93,8 @@ class RegistryListener(ExtendableRegistryListener):
     def update_forward_refs(self, registry: ExtendableClassesRegistry) -> None:
         """Try to update ForwardRefs on fields to resolve dynamic type usage."""
         for cls in registry._extendable_classes.values():
-            if issubclass(type(cls), ExtendableModelMeta):
-                cast(ExtendableModelMeta, cls).update_forward_refs()
+            if issubclass(cls, BaseModel):
+                cast(BaseModel, cls).update_forward_refs()
 
     def resolve_submodel_fields(self, registry: ExtendableClassesRegistry) -> None:
         for cls in registry._extendable_classes.values():
