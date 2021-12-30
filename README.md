@@ -1,0 +1,2 @@
+# pydantic-ext
+Extendable Pydantic
