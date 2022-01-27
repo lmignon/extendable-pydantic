@@ -8,7 +8,7 @@ except ImportError:
 
 from pydantic.main import BaseModel
 
-from pydanticext import ExtendableModelMeta
+from extendable_pydantic import ExtendableModelMeta
 
 
 def test_simple_inheritance(test_registry):

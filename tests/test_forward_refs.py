@@ -3,7 +3,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from pydanticext import ExtendableModelMeta
+from extendable_pydantic import ExtendableModelMeta
 
 
 def test_simple_forward_ref(test_registry):

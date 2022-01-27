@@ -8,7 +8,7 @@ model as [Extendable](https://pypi.org/project/extendable/) class.
 
 ```python
 from pydantic import BaseModel
-from pydanticext import ExtendableModelMeta
+from extendable_pydantic import ExtendableModelMeta
 from extendable import context, registry
 
 class Location(BaseModel, metaclass=ExtendableModelMeta):
