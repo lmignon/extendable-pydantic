@@ -6,6 +6,7 @@ from extendable import context
 from extendable.main import ExtendableMeta
 from extendable.registry import ExtendableClassesRegistry, ExtendableRegistryListener
 from pydantic.fields import ModelField
+from pydantic.generics import GenericModel
 from pydantic.main import BaseModel, ModelMetaclass
 
 
@@ -23,7 +24,7 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
         namespace = super()._prepare_namespace(
             name=name, bases=bases, namespace=namespace, extends=extends, **kwargs
         )
-        if BaseModel in bases:
+        if BaseModel in bases or GenericModel in bases:
             # we must wrap all the classmethod defined into pydantic.BaseModel
             metacls._wrap_pydantic_base_model_class_methods(namespace)
         return namespace

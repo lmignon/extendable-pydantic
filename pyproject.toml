@@ -14,7 +14,7 @@ classifiers = [
 ]
 dynamic = ["version", "description"]
 dependencies = [
-    "extendable",
+    "extendable>=0.0.3",
     "pydantic",
     "wrapt",
 ]
