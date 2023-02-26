@@ -16,6 +16,7 @@ dynamic = ["version", "description"]
 dependencies = [
     "extendable",
     "pydantic",
+    "wrapt",
 ]
 requires-python = ">=3.6"
 
@@ -32,6 +33,7 @@ mypy = [
 Source = "https://github.com/lmignon/pydantic-ext"
 
 [tool.flit.sdist]
+include = ["README.md", "LICENSE", "extendable_pydantic_patcher.pth"]
 exclude = [".github"]
 
 [tool.isort]
