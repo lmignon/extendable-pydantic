@@ -72,7 +72,7 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
         registry = registry if registry else context.extendable_registry.get()
         if issubclass(cls, BaseModel):
             for field in cast(BaseModel, cls).__fields__.values():
-                cls._resolve_submodel_field(field, registry)
+                cast(ExtendableModelMeta, cls)._resolve_submodel_field(field, registry)
 
     def _resolve_submodel_field(
         cls, field: ModelField, registry: ExtendableClassesRegistry

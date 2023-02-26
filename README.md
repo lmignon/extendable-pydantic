@@ -30,3 +30,9 @@ loc.dict() == {"lat": 12.3, "lng": 13.2, "name": "My Loc"}
 loc.schema()
 #> {'title': 'Location', 'type': 'object', 'properties': {'lat': {'title': 'Lat', 'default': 0.1, 'type': 'number'}, 'lng': {'title': 'Lng', 'default': 10.1, 'type': 'number'}, 'name': {'title': 'Name', 'type': 'string'}}, 'required': ['name']}
 ```
+
+## Development
+
+`pip install -e .`
+
+Then, copy `extendable_pydantic_patcher.pth` to `$VIRTUAL_ENV/lib/python3.10/site-packages`.
