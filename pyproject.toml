@@ -1,6 +1,6 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 [project]
 name = "extendable_pydantic"
@@ -32,9 +32,16 @@ mypy = [
 [project.urls]
 Source = "https://github.com/lmignon/pydantic-ext"
 
-[tool.flit.sdist]
-include = ["README.md", "LICENSE", "extendable_pydantic_patcher.pth"]
-exclude = [".github"]
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build]
+include = ["src/extendable_pydantic", "extendable_pydantic_patcher.pth"]
+# TODO add typodoo_activate.pth to editable wheel?
+directory = "dist"
+
+[tool.hatch.build.targets.wheel]
+sources = ["src"]
 
 [tool.isort]
 profile = "black"
