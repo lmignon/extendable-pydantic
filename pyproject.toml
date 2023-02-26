@@ -52,3 +52,20 @@ show_missing = true
 exclude_lines = [
     "pragma: no cover",
 ]
+
+[tool.ruff]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    # "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long, handled by black
+ ]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/test_forward_refs.py" = ["F821"]
