@@ -30,7 +30,7 @@ mypy = [
 ]
 
 [project.urls]
-Source = "https://github.com/lmignon/pydantic-ext"
+Source = "https://github.com/lmignon/extendable-pydantic"
 
 [tool.hatch.version]
 source = "vcs"
