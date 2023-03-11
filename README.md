@@ -36,3 +36,9 @@ loc.schema()
 `pip install -e .`
 
 Then, copy `extendable_pydantic_patcher.pth` to `$VIRTUAL_ENV/lib/python3.10/site-packages`.
+
+## Release
+
+* Tag the sources: `git tag x.y.z`
+* Build the package: `hatch build`
+* Publish to pypi: `twine upload dist/*`
