@@ -1,4 +1,9 @@
 #  type: ignore
+import site
+
+# needed to prevent import error on Odoo.sh
+site.main()
+
 import wrapt
 
 
