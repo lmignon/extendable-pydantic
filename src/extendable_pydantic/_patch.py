@@ -13,6 +13,14 @@ def hook_pydantic_schema(schema):
         if hasattr(model, "_get_assembled_cls"):
             model = model._get_assembled_cls()
             args = (model,) + args[1:]
+            from pydantic import schema as schema_module
+
+            # we must also extend the list ok know model name to the
+            # assembled classes since fastapi by default restrict this list
+            # to the classes defined in the service definition
+            flat_models = schema_module.get_flat_models_from_models([model])
+            model_name_map = schema_module.get_model_name_map(flat_models)
+            kwargs["model_name_map"] = model_name_map
         return wrapped(*args, **kwargs)
 
     wrapt.wrap_function_wrapper(
