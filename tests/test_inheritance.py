@@ -143,3 +143,28 @@ def test_issubclass(test_registry):
 
     schema = Location.schema()
     assert schema is not None
+
+
+def test_inheritance_class_method(test_registry):
+    class Base(BaseModel, metaclass=ExtendableModelMeta):
+        @classmethod
+        def test(cls):
+            return "base"
+
+    class Intermediate(Base):
+        ...
+
+    class Derived(Intermediate, extends=Intermediate):
+        @classmethod
+        def test(cls):
+            value = super().test()
+            return f"{value} derived"
+
+    test_registry.init_registry()
+    assert Intermediate.test() == "base derived"
+    assert Derived.test() == "base derived"
+
+    ClsIntermediate = test_registry[Intermediate.__xreg_name__]
+    assert ClsIntermediate.test() == "base derived"
+    ClsDerived = test_registry[Derived.__xreg_name__]
+    assert ClsDerived.test() == "base derived"
