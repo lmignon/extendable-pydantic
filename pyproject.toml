@@ -14,8 +14,8 @@ classifiers = [
 ]
 dynamic = ["version", "description"]
 dependencies = [
-    "extendable>=0.0.3",
-    "pydantic",
+    "extendable>=0.0.5",
+    "pydantic>=2.0.2",
     "wrapt",
 ]
 requires-python = ">=3.6"
@@ -26,7 +26,7 @@ test = [
     "coverage[toml]",
 ]
 mypy = [
-    "mypy",
+    "mypy>=1.4.1",
 ]
 
 [project.urls]
@@ -76,3 +76,11 @@ ignore = [
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]
 "tests/test_forward_refs.py" = ["F821"]
+
+[[tool.mypy.overrides]]
+module = "pydantic.main"
+implicit_reexport = true
+
+[[tool.mypy.overrides]]
+module="pydantic._internal._generate_schema"
+implicit_reexport = true

@@ -6,8 +6,8 @@ from extendable_pydantic import ExtendableModelMeta
 
 def test_model_relation(test_registry):
     class Coordinate(BaseModel, metaclass=ExtendableModelMeta):
-        lat = 0.1
-        lng = 10.1
+        lat: float = 0.1
+        lng: float = 10.1
 
     class Person(BaseModel, metaclass=ExtendableModelMeta):
         name: str
@@ -29,7 +29,7 @@ def test_model_relation(test_registry):
         coordinate = person.coordinate
         assert isinstance(coordinate, Coordinate)
         # sub schema are stored into the definition property
-        definitions = ClsPerson.schema().get("definitions", {})
+        definitions = ClsPerson.model_json_schema().get("$defs", {})
         assert "Coordinate" in definitions
         coordinate_properties = definitions["Coordinate"].get("properties", {}).keys()
         assert {"lat", "lng", "country"} == set(coordinate_properties)
