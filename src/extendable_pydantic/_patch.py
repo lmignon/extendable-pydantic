@@ -1,65 +1,60 @@
 #  type: ignore
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
+
 import wrapt
+from extendable import context
+from pydantic import TypeAdapter
+
+from .utils import all_identical, resolve_annotation
 
 
-@wrapt.when_imported("pydantic.schema")
-def hook_pydantic_schema(schema):
-    # This method is called by fastapi to get the schema of a model.
-    # We need to replace it with a wrapper that will return the schema
-    # of the assembled class instead of the base class to make the extendable
-    # models work with fastapi.
-    def _model_process_schema_wrapper(wrapped, instance, args, kwargs):
-        model = args[0]
-        if hasattr(model, "_get_assembled_cls"):
-            model = model._get_assembled_cls()
-            args = (model,) + args[1:]
-            from pydantic import schema as schema_module
-
-            # we must also extend the list ok know model name to the
-            # assembled classes since fastapi by default restrict this list
-            # to the classes defined in the service definition
-            flat_models = schema_module.get_flat_models_from_models([model])
-            model_name_map = schema_module.get_model_name_map(flat_models)
-            kwargs["model_name_map"] = model_name_map
-        return wrapped(*args, **kwargs)
-
-    wrapt.wrap_function_wrapper(
-        schema, "model_process_schema", _model_process_schema_wrapper
-    )
+def _resolve_model_fields_annotation(model_fields):
+    registry = context.extendable_registry.get()
+    if registry:
+        for field in model_fields:
+            field_info = field.field_info
+            new_type = resolve_annotation(field_info.annotation)
+            if not all_identical(field_info.annotation, new_type):
+                field_info.annotation = new_type
+                field._type_adapter = TypeAdapter(Annotated[new_type, field_info])
+    return model_fields
 
 
-@wrapt.when_imported("fastapi.routing")
-def hook_fastapi_routing(routing):
-    # This method is called by fastapi to serialize the response of a route.
-    # We need to replace it with a wrapper that will use the extended class
-    # instead of the base class to serialize the response.
-    def _serialize_response_wrapper(wrapped, instance, args, kwargs):
-        field = kwargs["field"]
-        if hasattr(field, "_get_assembled_cls"):
-            field = field._get_assembled_cls()
-            kwargs["field"] = field
-        return wrapped(**kwargs)
+@wrapt.when_imported("fastapi.openapi.utils")
+def hook_fastapi_openapi_utils(utils):
+    # This method is used by fastapi to build the fields definition for all
+    # the routes. We need to replace it with a wrapper that will replace
+    # in the annotation any class that has been extended with the extended
+    # class.
+    # These definitions are used by fastapi to build the openapi schema.
+    def _get_fields_from_routes_wrapper(wrapped, instance, args, kwargs):
+        all_fields = wrapped(*args, **kwargs)
+        _resolve_model_fields_annotation(all_fields)
+        return all_fields
 
     wrapt.wrap_function_wrapper(
-        routing, "serialize_response", _serialize_response_wrapper
+        utils, "get_fields_from_routes", _get_fields_from_routes_wrapper
     )
 
 
 @wrapt.when_imported("fastapi.utils")
 def hook_fastapi_utils(utils):
-    # This method is called by fastapi to create a new field from an existing
-    # field when the field is used as a response model. The motivation is to
-    # ensure that the response model is not modified by the route handler.
-    # We need to replace it with a wrapper that will use the extended class
-    # as new field instead of a clone of the base class. Semantically, we
-    # still ensure that the response model is not modified by the route handler.
-    # since we enforce the use of the expected response model.
-    def _create_cloned_field_wrapper(wrapped, instance, args, kwargs):
-        field = args[0]
-        if hasattr(field.type_, "_get_assembled_cls"):
-            return field
-        return wrapped(*args, **kwargs)
+    # This method is used by fastapi to build the fields definition for all
+    # the routes used to parse the request and to build the response.
+    # This method is called a first time when the modules where the routes
+    # are defined are imported. At this time the registry is not yet
+    # initialized.
+    # This method is then called every time a route is added to an app.
+    # At this time the registry must be initialized. (it's the case
+    # with the odoo.addons.fastapi module)
+    def _create_response_field_wrapper(wrapped, instance, args, kwargs):
+        field = wrapped(*args, **kwargs)
+        _resolve_model_fields_annotation([field])
+        return field
 
     wrapt.wrap_function_wrapper(
-        utils, "create_cloned_field", _create_cloned_field_wrapper
+        utils, "create_response_field", _create_response_field_wrapper
     )

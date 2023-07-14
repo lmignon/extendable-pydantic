@@ -14,11 +14,11 @@ classifiers = [
 ]
 dynamic = ["version", "description"]
 dependencies = [
-    "extendable>=0.0.5",
+    "extendable>=1.0.0",
     "pydantic>=2.0.2",
     "wrapt",
 ]
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 
 [project.optional-dependencies]
 test = [
