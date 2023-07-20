@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
@@ -28,12 +28,17 @@ test = [
 mypy = [
     "mypy>=1.4.1",
 ]
+release = [
+    "towncrier",
+    "bumpversion",
+]
 
 [project.urls]
 Source = "https://github.com/lmignon/extendable-pydantic"
 
 [tool.hatch.version]
-source = "vcs"
+path="src/extendable_pydantic/version.py"
+
 
 [tool.hatch.build]
 include = ["src/extendable_pydantic", "extendable_pydantic_patcher.pth"]
@@ -84,3 +89,11 @@ implicit_reexport = true
 [[tool.mypy.overrides]]
 module="pydantic._internal._generate_schema"
 implicit_reexport = true
+
+[tool.towncrier]
+package = "extendable_pydantic"
+package_dir = "src"
+filename = "HISTORY.rst"
+directory = "news"
+issue_format = "`#{issue} <https://github.com/lmignon/extendable-pydantic/issues/{issue}>`_"
+title_format = "{version} ({project_date})"
