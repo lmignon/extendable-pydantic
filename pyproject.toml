@@ -91,6 +91,7 @@ module="pydantic._internal._generate_schema"
 implicit_reexport = true
 
 [tool.towncrier]
+name = "Extendable Pydantic"
 package = "extendable_pydantic"
 package_dir = "src"
 filename = "HISTORY.rst"

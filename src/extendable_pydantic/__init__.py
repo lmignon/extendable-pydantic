@@ -2,3 +2,4 @@
 
 # shortcut to main used class
 from .main import ExtendableModelMeta
+from .version import __version__
