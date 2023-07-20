@@ -1,4 +1,14 @@
 #  type: ignore
+# ruff: noqa: E402
+
+# The following 2 lines are required to prevent import error if others dependecies
+# are not yet available into the python path when this file is loaded.
+# This should be done by default unless the Python interpreter was started
+# with the -S flag. It's at least required when this lib is deployed into odoo.sh
+import site
+
+site.main()
+
 import wrapt
 
 
