@@ -39,6 +39,9 @@ Then, copy `extendable_pydantic_patcher.pth` to `$VIRTUAL_ENV/lib/python3.10/sit
 
 ## Release
 
-* Tag the sources: `git tag x.y.z`
-* Build the package: `hatch build`
-* Publish to pypi: `twine upload dist/*`
+
+* run ``bumpversion patch|minor|major --list
+* Check the new_version value returned by the previous command
+* run towncrier build.
+* Inspect and commit the updated HISTORY.rst.
+* git tag {new_version} ; git push --tags.
