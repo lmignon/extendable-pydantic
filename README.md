@@ -6,6 +6,9 @@
 This addons provides a new type used to declare [Pydantic](https://pypi.org/project/pydantic/)
 model as [Extendable](https://pypi.org/project/extendable/) class.
 
+From release 1.0.0 it only supports Pydantic >= 2.0.0.
+
+
 ```python
 from pydantic import BaseModel
 from extendable_pydantic import ExtendableModelMeta
@@ -24,10 +27,10 @@ _registry.init_registry()
 
 loc = Location(**{"lat": 12.3, "lng": 13.2, "name": "My Loc"})
 
-loc.dict() == {"lat": 12.3, "lng": 13.2, "name": "My Loc"}
+loc.model_dump() == {"lat": 12.3, "lng": 13.2, "name": "My Loc"}
 #> True
 
-loc.schema()
+loc.model_json_schema()
 #> {'title': 'Location', 'type': 'object', 'properties': {'lat': {'title': 'Lat', 'default': 0.1, 'type': 'number'}, 'lng': {'title': 'Lng', 'default': 10.1, 'type': 'number'}, 'name': {'title': 'Name', 'type': 'string'}}, 'required': ['name']}
 ```
 

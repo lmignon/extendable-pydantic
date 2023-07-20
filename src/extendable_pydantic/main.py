@@ -1,19 +1,39 @@
-import functools
+from __future__ import annotations
+
 import inspect
+import typing
+import warnings
 from typing import Any, Dict, Optional, cast, no_type_check
 
-from extendable import context
+from extendable import context, main
 from extendable.main import ExtendableMeta
 from extendable.registry import ExtendableClassesRegistry, ExtendableRegistryListener
-from pydantic.fields import ModelField
-from pydantic.generics import GenericModel
-from pydantic.main import BaseModel, ModelMetaclass
+
+try:
+    from typing import _TypingBase  # type: ignore[attr-defined,unused-ignore]
+except ImportError:
+    from typing import _Final as _TypingBase  # type: ignore[attr-defined,unused-ignore]
+
+from pydantic._internal._model_construction import ModelMetaclass
+from pydantic.main import BaseModel, FieldInfo
+
+from .utils import all_identical, resolve_annotation
+
+typing_base = _TypingBase
+
+
+if typing.TYPE_CHECKING:
+    AnyClassmethod = classmethod[Any, Any, Any]
 
 
 class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
     @no_type_check
     @classmethod
     def _build_original_class(metacls, name, bases, namespace, **kwargs):
+        if not main._registry_build_mode and BaseModel in bases:
+            # we must wrap all the classmethod defined into pydantic.BaseModel
+            metacls._wrap_pydantic_base_model_class_methods(namespace)
+            pass
         return ModelMetaclass.__new__(metacls, name, bases, namespace, **kwargs)
 
     @no_type_check
@@ -24,42 +44,43 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
         namespace = super()._prepare_namespace(
             name=name, bases=bases, namespace=namespace, extends=extends, **kwargs
         )
-        if BaseModel in bases or GenericModel in bases:
-            # we must wrap all the classmethod defined into pydantic.BaseModel
-            metacls._wrap_pydantic_base_model_class_methods(namespace)
         return namespace
+
+    @no_type_check
+    def __call__(cls, *args, **kwargs) -> "ExtendableMeta":
+        """Create the aggregated class in place of the original class definition.
+
+        This method called at instance creation. The resulted instance
+        will be an instance of the aggregated class not an instance of
+        the original class definition since this definition could have
+        been extended.
+        """
+        is_aggregated = getattr(
+            cls._is_aggregated_class, "default", cls._is_aggregated_class
+        )
+        if is_aggregated:
+            return super().__call__(*args, **kwargs)
+        return cls._get_assembled_cls()(*args, **kwargs)
 
     @classmethod
     def _wrap_pydantic_base_model_class_methods(
         metacls, namespace: Dict[str, Any]
     ) -> Dict[str, Any]:
         new_namespace = namespace
-        methods = inspect.getmembers(BaseModel, inspect.ismethod)
-        for name, method in methods:
-            func = method.__func__
-            if name.startswith("__"):
-                continue
-            if name in namespace:
-                continue
+        from pydantic.warnings import PydanticDeprecationWarning
 
-            @no_type_check
-            def new_method(cls, *args, _method_name=None, _initial_func=None, **kwargs):
-                # ensure that arggs and kwargs are conform to the
-                # initial signature
-                inspect.signature(_initial_func).bind(cls, *args, **kwargs)
-                if getattr(cls, "_is_aggregated_class", False) or hasattr(
-                    cls, "_original_cls"
-                ):
-                    return _initial_func(cls, *args, **kwargs)
-                cls = cls._get_assembled_cls()
-                return getattr(cls, _method_name)(*args, **kwargs)
-
-            new_method_def = functools.partial(
-                new_method, _method_name=name, _initial_func=func
-            )
-            # preserve signature for IDE
-            functools.update_wrapper(new_method_def, func)
-            new_namespace[name] = classmethod(new_method_def)
+        with warnings.catch_warnings():
+            # ignore warnings about deprecated methods into pydantic.BaseModel
+            warnings.filterwarnings("ignore", category=PydanticDeprecationWarning)
+            methods = inspect.getmembers(BaseModel, inspect.ismethod)
+            for name, method in methods:
+                if name.startswith("__"):
+                    continue
+                if name in namespace:
+                    continue
+                new_namespace[name] = metacls._wrap_class_method(
+                    cast("AnyClassmethod", method), name
+                )
         return new_namespace
 
     ###############################################################
@@ -71,31 +92,39 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
         """Replace the original field type into the definition of the field by the one
         from the registry."""
         registry = registry if registry else context.extendable_registry.get()
+        to_rebuild = False
         if issubclass(cls, BaseModel):
-            for field in cast(BaseModel, cls).__fields__.values():
-                cast(ExtendableModelMeta, cls)._resolve_submodel_field(field, registry)
-
-    def _resolve_submodel_field(
-        cls, field: ModelField, registry: ExtendableClassesRegistry
-    ) -> None:
-        if issubclass(type(field.type_), ExtendableModelMeta):
-            field.type_ = field.type_._get_assembled_cls(registry)
-            field.prepare()
-        if field.sub_fields:
-            for sub_f in field.sub_fields:
-                cls._resolve_submodel_field(sub_f, registry)
+            type_namespace = cast(BaseModel, cls).__pydantic_parent_namespace__ or {}
+            name_space = type_namespace.get("namespace", {})
+            for field_name, annoted_type in name_space.get(
+                "__annotations__", {}
+            ).items():
+                if issubclass(type(annoted_type), ExtendableModelMeta):
+                    name_space["__annotations__"][
+                        field_name
+                    ] = annoted_type._get_assembled_cls(registry)
+                    to_rebuild = True
+            for field_name, field_info in cast(BaseModel, cls).model_fields.items():
+                new_type = resolve_annotation(field_info.annotation, registry)
+                if not all_identical(field_info.annotation, new_type):
+                    cast(BaseModel, cls).model_fields[
+                        field_name
+                    ] = FieldInfo.from_annotation(new_type)
+                    to_rebuild = True
+        if to_rebuild:
+            delattr(cls, "__pydantic_core_schema__")
+            cast(BaseModel, cls).model_rebuild(force=True)
+            return
 
 
 class RegistryListener(ExtendableRegistryListener):
     def on_registry_initialized(self, registry: ExtendableClassesRegistry) -> None:
-        self.update_forward_refs(registry)
         self.resolve_submodel_fields(registry)
+        self.rebuild_models(registry)
 
-    def update_forward_refs(self, registry: ExtendableClassesRegistry) -> None:
-        """Try to update ForwardRefs on fields to resolve dynamic type usage."""
+    def rebuild_models(self, registry: ExtendableClassesRegistry) -> None:
         for cls in registry._extendable_classes.values():
-            if issubclass(cls, BaseModel):
-                cast(BaseModel, cls).update_forward_refs()
+            cast(BaseModel, cls).model_rebuild(force=True)
 
     def resolve_submodel_fields(self, registry: ExtendableClassesRegistry) -> None:
         for cls in registry._extendable_classes.values():
@@ -104,3 +133,21 @@ class RegistryListener(ExtendableRegistryListener):
 
 
 ExtendableClassesRegistry.listeners.append(RegistryListener())
+
+from pydantic._internal import _generate_schema  # noqa: E402
+
+initial_type_ref = _generate_schema.get_type_ref
+
+
+def get_type_ref(
+    type_: type[Any], args_override: tuple[type[Any], ...] | None = None
+) -> str:
+    type_ref: str = initial_type_ref(type_, args_override)
+    # Ensure type_ref unicity for each extendable model
+    if issubclass(type(type_), ExtendableModelMeta):
+        module_name = getattr(type_, "__module__", "<No __module__>")
+        type_ref = f"{module_name}.{type_.__name__}:{id(type_)}"
+    return type_ref
+
+
+_generate_schema.get_type_ref = get_type_ref

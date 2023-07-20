@@ -13,8 +13,8 @@ from extendable_pydantic import ExtendableModelMeta
 
 def test_simple_inheritance(test_registry):
     class Location(BaseModel, metaclass=ExtendableModelMeta):
-        lat = 0.1
-        lng = 10.1
+        lat: float = 0.1
+        lng: float = 10.1
 
         def test(self) -> str:
             return "location"
@@ -32,20 +32,20 @@ def test_simple_inheritance(test_registry):
     ClsLocation = test_registry[Location.__xreg_name__]
     classes = Location, ExtendedLocation, ClsLocation
     for cls in classes:
-        schema = cls.schema()
+        schema = cls.model_json_schema()
         properties = schema.get("properties", {}).keys()
         assert schema.get("title") == "Location"
         assert {"lat", "lng", "name"} == set(properties)
         location = cls(name="name", lng=5.0, lat=4.2)
-        assert location.dict() == {"lat": 4.2, "lng": 5.0, "name": "name"}
+        assert location.model_dump() == {"lat": 4.2, "lng": 5.0, "name": "name"}
         assert location.test() == "extended"
         assert location.test(return_super=True) == "location"
 
 
 def test_composite_inheritance(test_registry):
     class Coordinate(BaseModel, metaclass=ExtendableModelMeta):
-        lat = 0.1
-        lng = 10.1
+        lat: float = 0.1
+        lng: float = 10.1
 
     class Name(BaseModel, metaclass=ExtendableModelMeta):
         name: str
@@ -62,10 +62,10 @@ def test_composite_inheritance(test_registry):
     # of the same model...
     classes = Location, ClsLocation
     for cls in classes:
-        properties = cls.schema().get("properties", {}).keys()
+        properties = cls.model_json_schema().get("properties", {}).keys()
         assert {"lat", "lng", "name"} == set(properties)
         location = cls(name="name", lng=5.0, lat=4.2)
-        assert location.dict() == {"lat": 4.2, "lng": 5.0, "name": "name"}
+        assert location.model_dump() == {"lat": 4.2, "lng": 5.0, "name": "name"}
 
 
 def test_inheritance_new_model(test_registry):
@@ -114,18 +114,18 @@ def test_inheritance_new_model_2(test_registry):
 
 def test_instance(test_registry):
     class Location(BaseModel, metaclass=ExtendableModelMeta):
-        lat = 0.1
-        lng = 10.1
+        lat: float = 0.1
+        lng: float = 10.1
 
     class ExtendedLocation(Location, extends=Location):
         name: str
 
     test_registry.init_registry()
 
-    inst1 = Location.construct()
-    inst2 = ExtendedLocation.construct()
+    inst1 = Location.model_construct()
+    inst2 = ExtendedLocation.model_construct()
     assert inst1.__class__ == inst2.__class__
-    assert inst1.schema() == inst2.schema()
+    assert inst1.model_json_schema() == inst2.model_json_schema()
 
 
 def test_issubclass(test_registry):
@@ -141,5 +141,5 @@ def test_issubclass(test_registry):
     assert not issubclass(Literal["test"], Location)
     assert not issubclass(Literal, Location)
 
-    schema = Location.schema()
+    schema = Location.model_json_schema()
     assert schema is not None

@@ -8,7 +8,6 @@ except ImportError:
     from typing_extensions import Literal
 
 import pytest
-from pydantic.generics import GenericModel
 from pydantic.main import BaseModel
 
 from extendable_pydantic import ExtendableModelMeta
@@ -20,12 +19,33 @@ skip_not_supported_version_for_generics = pytest.mark.skipif(
 )
 
 
+def test_base():
+    T = TypeVar("T")
+
+    class SearchResult(BaseModel, Generic[T]):
+        total: int
+        results: List[T]
+
+    class Location(BaseModel):
+        kind: Literal["view", "bin"]
+        my_list: List[str]
+
+    class SearchLocationResult(SearchResult[Location]):
+        pass
+
+    schema = SearchLocationResult.model_json_schema()
+    assert schema is not None
+    assert schema.get("title") == "SearchLocationResult"
+    assert schema.get("properties", {}).keys() == {"total", "results"}
+    assert schema["properties"]["results"]["items"]["$ref"] == "#/$defs/Location"
+
+
 @skip_not_supported_version_for_generics
 def test_generics_of_extended(test_registry):
     """In this test we check that generics of extended works."""
     T = TypeVar("T")
 
-    class SearchResult(GenericModel, Generic[T], metaclass=ExtendableModelMeta):
+    class SearchResult(BaseModel, Generic[T], metaclass=ExtendableModelMeta):
         total: int
         results: List[T]
 
@@ -41,12 +61,12 @@ def test_generics_of_extended(test_registry):
 
     test_registry.init_registry()
 
-    schema = SearchLocationResult.schema()
+    schema = SearchLocationResult.model_json_schema()
     assert schema is not None
     assert schema.get("title") == "SearchLocationResult"
     assert schema.get("properties", {}).keys() == {"total", "results"}
-    assert schema["properties"]["results"]["items"]["$ref"] == "#/definitions/Location"
-    assert schema["definitions"]["Location"]["properties"].keys() == {
+    assert schema["properties"]["results"]["items"]["$ref"] == "#/$defs/Location"
+    assert schema["$defs"]["Location"]["properties"].keys() == {
         "kind",
         "my_list",
         "name",
@@ -55,7 +75,7 @@ def test_generics_of_extended(test_registry):
         total=0,
         results=[Location(kind="view", my_list=["a", "b"], name="name")],
     )
-    assert result.dict() == {
+    assert result.model_dump() == {
         "total": 0,
         "results": [{"kind": "view", "my_list": ["a", "b"], "name": "name"}],
     }
@@ -66,7 +86,7 @@ def test_extended_generics(test_registry):
     """In this test we check that extending a generics works."""
     T = TypeVar("T")
 
-    class SearchResult(GenericModel, Generic[T], metaclass=ExtendableModelMeta):
+    class SearchResult(BaseModel, Generic[T], metaclass=ExtendableModelMeta):
         total: int
         results: List[T]
 
@@ -82,12 +102,12 @@ def test_extended_generics(test_registry):
 
     test_registry.init_registry()
 
-    schema = SearchLocationResult.schema()
+    schema = SearchLocationResult.model_json_schema()
     assert schema is not None
     assert schema.get("title") == "SearchLocationResult"
     assert schema.get("properties", {}).keys() == {"total", "results", "offset"}
-    assert schema["properties"]["results"]["items"]["$ref"] == "#/definitions/Location"
-    assert schema["definitions"]["Location"]["properties"].keys() == {
+    assert schema["properties"]["results"]["items"]["$ref"] == "#/$defs/Location"
+    assert schema["$defs"]["Location"]["properties"].keys() == {
         "kind",
         "my_list",
     }
@@ -96,7 +116,7 @@ def test_extended_generics(test_registry):
         total=0,
         results=[Location(kind="view", my_list=["a", "b"])],
     )
-    assert result.dict() == {
+    assert result.model_dump() == {
         "offset": 1,
         "total": 0,
         "results": [{"kind": "view", "my_list": ["a", "b"]}],
@@ -109,7 +129,7 @@ def test_extended_generics_of_extended_model(test_registry):
     workks."""
     T = TypeVar("T")
 
-    class SearchResult(GenericModel, Generic[T], metaclass=ExtendableModelMeta):
+    class SearchResult(BaseModel, Generic[T], metaclass=ExtendableModelMeta):
         total: int
         results: List[T]
 
@@ -128,12 +148,12 @@ def test_extended_generics_of_extended_model(test_registry):
 
     test_registry.init_registry()
 
-    schema = SearchLocationResult.schema()
+    schema = SearchLocationResult.model_json_schema()
     assert schema is not None
     assert schema.get("title") == "SearchLocationResult"
     assert schema.get("properties", {}).keys() == {"total", "results", "offset"}
-    assert schema["properties"]["results"]["items"]["$ref"] == "#/definitions/Location"
-    assert schema["definitions"]["Location"]["properties"].keys() == {
+    assert schema["properties"]["results"]["items"]["$ref"] == "#/$defs/Location"
+    assert schema["$defs"]["Location"]["properties"].keys() == {
         "kind",
         "my_list",
         "name",
@@ -143,7 +163,7 @@ def test_extended_generics_of_extended_model(test_registry):
         total=0,
         results=[Location(kind="view", my_list=["a", "b"], name="name")],
     )
-    assert result.dict() == {
+    assert result.model_dump() == {
         "offset": 1,
         "total": 0,
         "results": [{"kind": "view", "my_list": ["a", "b"], "name": "name"}],
