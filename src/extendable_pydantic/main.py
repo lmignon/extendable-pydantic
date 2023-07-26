@@ -94,16 +94,6 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
         registry = registry if registry else context.extendable_registry.get()
         to_rebuild = False
         if issubclass(cls, BaseModel):
-            type_namespace = cast(BaseModel, cls).__pydantic_parent_namespace__ or {}
-            name_space = type_namespace.get("namespace", {})
-            for field_name, annoted_type in name_space.get(
-                "__annotations__", {}
-            ).items():
-                if issubclass(type(annoted_type), ExtendableModelMeta):
-                    name_space["__annotations__"][
-                        field_name
-                    ] = annoted_type._get_assembled_cls(registry)
-                    to_rebuild = True
             for field_name, field_info in cast(BaseModel, cls).model_fields.items():
                 new_type = resolve_annotation(field_info.annotation, registry)
                 if not all_identical(field_info.annotation, new_type):

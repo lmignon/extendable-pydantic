@@ -1,0 +1,1 @@
+Remove unused code breaking compatibility with Pydantic>=2.1.0
