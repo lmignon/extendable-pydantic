@@ -1,8 +1,7 @@
 import functools
 import inspect
-from typing import Any, Dict, Optional, cast, no_type_check
+from typing import Any, Dict, cast, no_type_check
 
-from extendable import context
 from extendable.main import ExtendableMeta
 from extendable.registry import ExtendableClassesRegistry, ExtendableRegistryListener
 from pydantic.fields import ModelField
@@ -65,12 +64,9 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
     ###############################################################
     # concrete methods provided to the final class by the metaclass
     ###############################################################
-    def _resolve_submodel_fields(
-        cls, registry: Optional[ExtendableClassesRegistry] = None
-    ) -> None:
+    def _resolve_submodel_fields(cls, registry: ExtendableClassesRegistry) -> None:
         """Replace the original field type into the definition of the field by the one
         from the registry."""
-        registry = registry if registry else context.extendable_registry.get()
         if issubclass(cls, BaseModel):
             for field in cast(BaseModel, cls).__fields__.values():
                 cast(ExtendableModelMeta, cls)._resolve_submodel_field(field, registry)
