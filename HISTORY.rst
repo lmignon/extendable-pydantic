@@ -1,3 +1,12 @@
+1.0.1 (2023-07-26)
+==================
+
+Bugfixes
+--------
+
+- Remove unused code breaking compatibility with Pydantic>=2.1.0 (`#9 <https://github.com/lmignon/extendable-pydantic/issues/9>`_)
+
+
 1.0.0 (2023-07-20)
 ==================
 
