@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
@@ -15,7 +15,7 @@ classifiers = [
 dynamic = ["version", "description"]
 dependencies = [
     "extendable>=0.0.3",
-    "pydantic",
+    "pydantic<2.0.0",
     "wrapt",
 ]
 requires-python = ">=3.6"
@@ -28,12 +28,17 @@ test = [
 mypy = [
     "mypy",
 ]
+release = [
+    "towncrier",
+    "bumpversion",
+]
 
 [project.urls]
 Source = "https://github.com/lmignon/extendable-pydantic"
 
 [tool.hatch.version]
-source = "vcs"
+path="src/extendable_pydantic/version.py"
+
 
 [tool.hatch.build]
 include = ["src/extendable_pydantic", "extendable_pydantic_patcher.pth"]
@@ -76,3 +81,11 @@ ignore = [
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]
 "tests/test_forward_refs.py" = ["F821"]
+
+[tool.towncrier]
+package = "extendable_pydantic"
+package_dir = "src"
+filename = "HISTORY.rst"
+directory = "news"
+issue_format = "`#{issue} <https://github.com/lmignon/extendable-pydantic/issues/{issue}>`_"
+title_format = "{version} ({project_date})"
