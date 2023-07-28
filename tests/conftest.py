@@ -1,5 +1,3 @@
-import collections
-
 import pytest
 from extendable import context, main, registry
 
@@ -9,7 +7,7 @@ def test_registry() -> registry.ExtendableClassesRegistry:
     reg = registry.ExtendableClassesRegistry()
     initial_class_defs = main._extendable_class_defs_by_module
     try:
-        main._extendable_class_defs_by_module = collections.OrderedDict()
+        main._extendable_class_defs_by_module = initial_class_defs.copy()
         token = context.extendable_registry.set(reg)
         yield reg
     finally:
