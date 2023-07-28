@@ -1,5 +1,4 @@
 """Test generics model inheritance."""
-import sys
 from typing import Generic, List, TypeVar
 
 try:
@@ -7,16 +6,11 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-import pytest
 from pydantic.main import BaseModel
 
 from extendable_pydantic import ExtendableModelMeta
 
-skip_not_supported_version_for_generics = pytest.mark.skipif(
-    sys.version_info < (3, 8) or hasattr(sys, "pypy_translation_info"),
-    reason="generics only supported for python 3.8 and above and is not "
-    "supported on pypy",
-)
+from .conftest import skip_not_supported_version_for_generics
 
 
 def test_base():
