@@ -1,3 +1,12 @@
+1.1.0 (2023-07-28)
+==================
+
+Features
+--------
+
+- Add new class `ExtendableBaseModel` as base class for extendable pydantic models
+
+
 1.0.1 (2023-07-26)
 ==================
 
