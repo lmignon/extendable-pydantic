@@ -99,7 +99,7 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
                 if not all_identical(field_info.annotation, new_type):
                     cast(BaseModel, cls).model_fields[
                         field_name
-                    ] = FieldInfo.from_annotation(new_type)
+                    ] = FieldInfo.merge_field_infos(field_info, annotation=new_type)
                     to_rebuild = True
         if to_rebuild:
             delattr(cls, "__pydantic_core_schema__")

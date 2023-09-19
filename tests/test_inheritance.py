@@ -1,13 +1,15 @@
 """Test model inheritance."""
-from typing import List
+from typing import List, Optional
 
 try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
 
+from pydantic import Field
 from pydantic.main import BaseModel
 
+from extendable_pydantic import ExtendableBaseModel
 from extendable_pydantic import ExtendableModelMeta
 
 
@@ -143,3 +145,63 @@ def test_issubclass(test_registry):
 
     schema = Location.model_json_schema()
     assert schema is not None
+
+
+def test_nested_inherited_with_optional_not_required(test_registry):
+    # In this test, the Event class defines a field `time` which is optional.
+    # Moreover, since a default value is provided, the field is not required.
+    # The test checks that the field remains not required when the nested extended
+    # classes are resolved at registry initialization.
+    class Location(ExtendableBaseModel):
+        lat: float = 0.1
+        lng: float = 10.1
+
+    class Time(ExtendableBaseModel):
+        hour: int
+
+    class Event(ExtendableBaseModel):
+        location: Location
+        time: Optional[Time] = None
+
+    test_registry.init_registry()
+
+    data = {"location": {"lat": 12.3, "lng": 13.2}}
+    event = Event(**data)
+
+    assert event.location.lat == 12.3
+    assert event.time is None
+
+    schema = Event.model_json_schema()
+    assert schema is not None
+    assert schema["properties"]["time"]["default"] is None
+    assert schema["required"] == ["location"]
+
+
+def test_nested_inherited_with_field_info(test_registry):
+    # This test is based on the previous one, but the field `time` is now annotated
+    # with a FieldInfo object. We check that the FieldInfo is correctly preserved
+    # when the nested extended classes are resolved at registry initialization.
+    class Location(ExtendableBaseModel):
+        lat: float = 0.1
+        lng: float = 10.1
+
+    class Time(ExtendableBaseModel):
+        hour: int
+
+    class Event(ExtendableBaseModel):
+        location: Location
+        time: Optional[Time] = Field(None, description="The time of the event.")
+
+    test_registry.init_registry()
+
+    data = {"location": {"lat": 12.3, "lng": 13.2}}
+    event = Event(**data)
+
+    assert event.location.lat == 12.3
+    assert event.time is None
+
+    schema = Event.model_json_schema()
+    assert schema is not None
+    assert schema["properties"]["time"]["description"] == "The time of the event."
+    assert schema["properties"]["time"]["default"] is None
+    assert schema["required"] == ["location"]
