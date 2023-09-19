@@ -1,3 +1,16 @@
+1.1.1 (2023-09-19)
+==================
+
+Bugfixes
+--------
+
+- Preserves the original FieldInfo when resolving nested extended classes at
+  registry initialization time. Before this change, when the registry was
+  initialized, and a field referencing a nested class was encountered, only
+  the annotated information was preserved not the additional information provided
+  as default value. (`#15 <https://github.com/lmignon/extendable-pydantic/issues/15>`_)
+
+
 1.1.0 (2023-07-28)
 ==================
 
