@@ -1,3 +1,17 @@
+1.2.0 (2023-10-11)
+==================
+
+Features
+--------
+
+- Add a new base class `StrictExtendableBaseModel`. This class is a subclass of
+  `ExtendableBaseModel` and enforces strict validation by forcing the revalidation
+   of instances when the method `model_validate` is called and by ensuring that
+   the values assignment is validated. This class is useful when you need to
+   instantiate you model from a partial dictionary and you want to ensure that
+   any value assignment taking place after the instantiation is validated. (`#17 <https://github.com/lmignon/extendable-pydantic/issues/17>`_)
+
+
 1.1.1 (2023-09-19)
 ==================
 
