@@ -15,7 +15,8 @@ except ImportError:
     from typing import _Final as _TypingBase  # type: ignore[attr-defined,unused-ignore]
 
 from pydantic._internal._model_construction import ModelMetaclass
-from pydantic.main import BaseModel, FieldInfo
+from pydantic.fields import FieldInfo
+from pydantic.main import BaseModel
 
 from .utils import all_identical, resolve_annotation
 
