@@ -1,4 +1,0 @@
-From Pydantic 2.5.0 the FieldInfo class is no more available in the pydantic.main
-module. It's only available in the pydantic.fields module. The import from the
-pydantic.main module was a mistake since it relied on an transitive import from
-pydantic.fields to pydantic.main. This is no more the case in Pydantic 2.5.0.
