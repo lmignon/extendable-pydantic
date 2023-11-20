@@ -113,7 +113,10 @@ def resolve_annotation(
     # semantics as "typing" classes or generic aliases
 
     if not origin_type and issubclass(type(type_), ExtendableMeta):
-        return type_._get_assembled_cls(registry)
+        final_type = type_._get_assembled_cls(registry)
+        if final_type is not type_:
+            final_type._resolve_submodel_fields(registry)
+        return final_type
 
     # Handle special case for typehints that can have lists as arguments.
     # `typing.Callable[[int, str], int]` is an example for this.

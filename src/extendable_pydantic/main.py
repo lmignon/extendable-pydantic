@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import typing
 import warnings
-from typing import Any, Dict, List, Optional, cast, no_type_check
+from typing import Any, Dict, List, Optional, cast, no_type_check, Set
 
 from extendable import context, main
 from extendable.main import ExtendableMeta
@@ -93,6 +93,13 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
         """Replace the original field type into the definition of the field by the one
         from the registry."""
         registry = registry if registry else context.extendable_registry.get()
+        resolved: Set["ExtendableModelMeta"] = getattr(
+            registry, "_resolved_models", set()
+        )
+        if cls in resolved:
+            return
+        resolved.add(cls)
+        registry._resolved_models = resolved  # type: ignore[union-attr]
         to_rebuild = False
         if issubclass(cls, BaseModel):
             for field_name, field_info in cast(BaseModel, cls).model_fields.items():
@@ -105,7 +112,6 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
         if to_rebuild:
             delattr(cls, "__pydantic_core_schema__")
             cast(BaseModel, cls).model_rebuild(force=True)
-            return
 
 
 class RegistryListener(ExtendableRegistryListener):

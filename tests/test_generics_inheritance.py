@@ -1,5 +1,5 @@
 """Test generics model inheritance."""
-from typing import Generic, List, TypeVar
+from typing import Generic, List, TypeVar, Optional
 
 try:
     from typing import Literal
@@ -9,6 +9,7 @@ except ImportError:
 from pydantic.main import BaseModel
 
 from extendable_pydantic import ExtendableModelMeta
+from extendable_pydantic.models import ExtendableBaseModel
 
 from .conftest import skip_not_supported_version_for_generics
 
@@ -114,6 +115,64 @@ def test_extended_generics(test_registry):
         "offset": 1,
         "total": 0,
         "results": [{"kind": "view", "my_list": ["a", "b"]}],
+    }
+
+
+@skip_not_supported_version_for_generics
+def test_generic_with_nested_extended(test_registry):
+    T = TypeVar("T")
+
+    class SearchResult(ExtendableBaseModel, Generic[T]):
+        total: int
+        results: List[T]
+
+    class Level(ExtendableBaseModel):
+        val: int
+
+    class SearchLevelResult(SearchResult[Level]):
+        pass
+
+    class Level11(ExtendableBaseModel):
+        val: int
+
+    class Level1(ExtendableBaseModel):
+        val: int
+        level11: Optional[Level11]
+
+    class Level11Extended(Level11, extends=True):
+        name: str = "level11"
+
+    class Level1Extended(Level1, extends=True):
+        name: str = "level1"
+
+    class LevelExtended(Level, extends=True):
+        name: str = "level"
+        level1: Optional[Level1]
+
+    test_registry.init_registry()
+
+    assert Level11(val=3).model_dump() == {"val": 3, "name": "level11"}
+
+    item = SearchLevelResult(
+        total=0,
+        results=[Level(val=1, level1=Level1(val=2, level11=Level11(val=3)))],
+    )
+    assert item.model_dump() == {
+        "total": 0,
+        "results": [
+            {
+                "val": 1,
+                "level1": {
+                    "val": 2,
+                    "level11": {
+                        "val": 3,
+                        "name": "level11",
+                    },
+                    "name": "level1",
+                },
+                "name": "level",
+            }
+        ],
     }
 
 
