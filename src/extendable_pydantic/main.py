@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import typing
 import warnings
-from typing import Any, Dict, List, Optional, cast, no_type_check, Set
+from typing import Any, Dict, List, Optional, cast, no_type_check
 
 from extendable import context, main
 from extendable.main import ExtendableMeta
@@ -28,6 +28,8 @@ if typing.TYPE_CHECKING:
 
 
 class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
+    __xreg_fields_resolved__: bool = False
+
     @no_type_check
     @classmethod
     def _build_original_class(metacls, name, bases, namespace, **kwargs):
@@ -45,6 +47,7 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
         namespace = super()._prepare_namespace(
             name=name, bases=bases, namespace=namespace, extends=extends, **kwargs
         )
+        namespace["__xreg_fields_resolved__"] = False
         return namespace
 
     @no_type_check
@@ -93,13 +96,9 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
         """Replace the original field type into the definition of the field by the one
         from the registry."""
         registry = registry if registry else context.extendable_registry.get()
-        resolved: Set["ExtendableModelMeta"] = getattr(
-            registry, "_resolved_models", set()
-        )
-        if cls in resolved:
+        if cls.__xreg_fields_resolved__:
             return
-        resolved.add(cls)
-        registry._resolved_models = resolved  # type: ignore[union-attr]
+        cls.__xreg_fields_resolved__ = True
         to_rebuild = False
         if issubclass(cls, BaseModel):
             for field_name, field_info in cast(BaseModel, cls).model_fields.items():
@@ -117,7 +116,6 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
 class RegistryListener(ExtendableRegistryListener):
     def on_registry_initialized(self, registry: ExtendableClassesRegistry) -> None:
         self.resolve_submodel_fields(registry)
-        self.rebuild_models(registry)
 
     def before_init_registry(
         self,
@@ -129,10 +127,6 @@ class RegistryListener(ExtendableRegistryListener):
             # prepend the current module to the module_matchings
             if "extendable_pydantic" not in module_matchings:
                 module_matchings.insert(0, "extendable_pydantic.models")
-
-    def rebuild_models(self, registry: ExtendableClassesRegistry) -> None:
-        for cls in registry._extendable_classes.values():
-            cast(BaseModel, cls).model_rebuild(force=True)
 
     def resolve_submodel_fields(self, registry: ExtendableClassesRegistry) -> None:
         for cls in registry._extendable_classes.values():
