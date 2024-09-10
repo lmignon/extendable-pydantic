@@ -1,0 +1,1 @@
+Fixes compatibility issue with fastapi version >= 0.112.3
