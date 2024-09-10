@@ -1,3 +1,12 @@
+1.3.1 (2024-09-10)
+==================
+
+Bugfixes
+--------
+
+- Fixes compatibility issue with fastapi version >= 0.112.3 (`#20 <https://github.com/lmignon/extendable-pydantic/issues/20>`_)
+
+
 1.3.0 (2023-11-23)
 ==================
 
