@@ -45,7 +45,7 @@ def all_identical(left: Optional[Any], right: Optional[Any]) -> bool:
     return True
 
 
-def resolve_annotation(
+def resolve_annotation(  # noqa: C901
     type_: Any, registry: Optional[ExtendableClassesRegistry] = None
 ) -> Any:
     """Return type with all occurrences of subclass of `ExtendableModelMeta` keys

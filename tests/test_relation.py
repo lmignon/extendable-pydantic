@@ -1,4 +1,5 @@
 """Test relations."""
+
 from pydantic.main import BaseModel
 
 from extendable_pydantic import ExtendableModelMeta

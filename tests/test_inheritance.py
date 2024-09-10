@@ -1,4 +1,5 @@
 """Test model inheritance."""
+
 from typing import List, Optional
 
 try:

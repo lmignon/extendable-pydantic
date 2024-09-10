@@ -1,4 +1,5 @@
 """Test generics model inheritance."""
+
 from typing import Generic, List, TypeVar, Optional
 
 try:

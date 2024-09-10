@@ -1,4 +1,5 @@
 """Test forward refs resolution."""
+
 from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict

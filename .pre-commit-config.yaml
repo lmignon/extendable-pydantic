@@ -2,24 +2,24 @@ default_language_version:
   python: python3
 repos:
   - repo: https://github.com/psf/black
-    rev: 23.1.0
+    rev: 24.8.0
     hooks:
       - id: black
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.252
+    rev: v0.6.4
     hooks:
       - id: ruff
         args:
           - --fix
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.6.0
     hooks:
       - id: check-toml
       - id: check-yaml
       - id: end-of-file-fixer
       - id: trailing-whitespace
   - repo: https://github.com/myint/docformatter
-    rev: v1.5.1
+    rev: v1.7.5
     hooks:
       - id: docformatter
         args: ["--in-place", "--wrap-summaries=88"]
