@@ -66,12 +66,13 @@ def hook_fastapi_utils(utils):
         _resolve_model_fields_annotation([field])
         return field
 
-    # fastapi <  0.112.3
-    wrapt.wrap_function_wrapper(
-        utils, "create_response_field", _create_response_field_wrapper
-    )
-
-    # fastapi >= 0.112.3
-    wrapt.wrap_function_wrapper(
-        utils, "create_model_field", _create_response_field_wrapper
-    )
+    if hasattr(utils, "create_response_field"):
+        # For fastapi < 0.112.3
+        wrapt.wrap_function_wrapper(
+            utils, "create_response_field", _create_response_field_wrapper
+        )
+    if hasattr(utils, "create_model_field"):
+        # For fastapi >= 0.112.3
+        wrapt.wrap_function_wrapper(
+            utils, "create_model_field", _create_response_field_wrapper
+        )
