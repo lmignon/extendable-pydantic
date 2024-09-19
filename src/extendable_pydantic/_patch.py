@@ -67,11 +67,13 @@ def hook_fastapi_utils(utils):
         return field
 
     # fastapi <  0.112.3
-    wrapt.wrap_function_wrapper(
-        utils, "create_response_field", _create_response_field_wrapper
-    )
+    if hasattr(utils, "create_response_field"):
+        wrapt.wrap_function_wrapper(
+            utils, "create_response_field", _create_response_field_wrapper
+        )
 
     # fastapi >= 0.112.3
-    wrapt.wrap_function_wrapper(
-        utils, "create_model_field", _create_response_field_wrapper
-    )
+    if hasattr(utils, "create_model_field"):
+        wrapt.wrap_function_wrapper(
+            utils, "create_model_field", _create_response_field_wrapper
+        )
