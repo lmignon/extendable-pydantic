@@ -24,7 +24,7 @@ from .utils import all_identical, resolve_annotation
 
 def _resolve_model_fields_annotation(model_fields):
     registry = context.extendable_registry.get()
-    if registry:
+    if registry and registry.ready:
         for field in model_fields:
             field_info = field.field_info
             new_type = resolve_annotation(field_info.annotation)
@@ -77,3 +77,19 @@ def hook_fastapi_utils(utils):
         wrapt.wrap_function_wrapper(
             utils, "create_model_field", _create_response_field_wrapper
         )
+
+
+@wrapt.when_imported("fastapi.dependencies.utils")
+def hook_fastapi_dependencies_utils(utils):
+    def _analyze_param_wrapper(wrapped, instance, args, kwargs):
+        registry = context.extendable_registry.get()
+        if registry and registry.ready:
+            annotation = kwargs.get("annotation")
+            if annotation:
+                new_type = resolve_annotation(annotation)
+                if not all_identical(annotation, new_type):
+                    kwargs["annotation"] = new_type
+        return wrapped(*args, **kwargs)
+
+    if hasattr(utils, "analyze_param"):
+        wrapt.wrap_function_wrapper(utils, "analyze_param", _analyze_param_wrapper)
