@@ -1,3 +1,13 @@
+1.4.0 (2025-04-16)
+==================
+
+- Force the use of extendable>=1.3.0; This is required to avoid a bug
+  when pydantic call the `isinstance` method on extendable instance and
+  its own class if the class has not been extended. This is a bug in
+  the extendable package. see (`extendable#18 <https://github.com/lmignon/extendable/issues/18>`_)
+
+
+
 1.3.1 (2024-09-10)
 ==================
 
