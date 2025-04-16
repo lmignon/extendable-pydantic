@@ -1,3 +1,9 @@
+1.4.1 (2025-04-16)
+==================
+
+- Fix the use of extendable model as query params into fastapi (`#22 <https://github.com/lmignon/extendable-pydantic/issues/22>`_)
+
+
 1.4.0 (2025-04-16)
 ==================
 
