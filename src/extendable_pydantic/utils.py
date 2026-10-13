@@ -17,7 +17,9 @@ try:
 except ImportError:
     from typing import _Final as _TypingBase  # type: ignore[attr-defined,unused-ignore]
 
-if sys.version_info >= (3, 10):
+# Since python 3.14, types.UnionType is typing.Union and supports __getitem__.
+_USE_UNION_GENERIC_ALIAS = sys.version_info < (3, 14)
+if _USE_UNION_GENERIC_ALIAS:
     from typing import _UnionGenericAlias  # type: ignore[attr-defined,unused-ignore]
 
 
@@ -105,7 +107,7 @@ def resolve_annotation(  # noqa: C901
         assert origin_type is not None
         # PEP-604 syntax (Ex.: list | str) is represented with a types.UnionType object that does not have __getitem__.
         # We also cannot use isinstance() since we have to compare types.
-        if sys.version_info >= (3, 10) and origin_type is types.UnionType:  # noqa: E721
+        if _USE_UNION_GENERIC_ALIAS and origin_type is types.UnionType:  # noqa: E721
             return _UnionGenericAlias(origin_type, resolved_type_args)
         return origin_type[resolved_type_args]
 

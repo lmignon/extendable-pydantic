@@ -27,6 +27,18 @@ if typing.TYPE_CHECKING:
     AnyClassmethod = classmethod[Any, Any, Any]
 
 
+def _copy_field_info(field_info: FieldInfo, annotation: Any) -> FieldInfo:
+    """Return a copy of the given field info with a new annotation."""
+    if not hasattr(field_info, "_copy"):
+        # pydantic < 2.12
+        return FieldInfo.merge_field_infos(field_info, annotation=annotation)
+    # pydantic >= 2.12: merge_field_infos is deprecated
+    new_field_info: FieldInfo = field_info._copy()
+    new_field_info._attributes_set["annotation"] = annotation
+    new_field_info.annotation = annotation
+    return new_field_info
+
+
 class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
     __xreg_fields_resolved__: bool = False
 
@@ -104,8 +116,8 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
             for field_name, field_info in cast(BaseModel, cls).model_fields.items():
                 new_type = resolve_annotation(field_info.annotation, registry)
                 if not all_identical(field_info.annotation, new_type):
-                    cast(BaseModel, cls).model_fields[field_name] = (
-                        FieldInfo.merge_field_infos(field_info, annotation=new_type)
+                    cast(BaseModel, cls).model_fields[field_name] = _copy_field_info(
+                        field_info, annotation=new_type
                     )
                     to_rebuild = True
         if to_rebuild:
@@ -136,9 +148,19 @@ class RegistryListener(ExtendableRegistryListener):
 
 ExtendableClassesRegistry.listeners.append(RegistryListener())
 
-from pydantic._internal import _generate_schema  # noqa: E402
+try:
+    # pydantic >= 2.11: type refs are computed by dedicated functions
+    from pydantic._internal import _type_refs  # noqa: E402
 
-initial_type_ref = _generate_schema.get_type_ref
+    _type_ref_module: Any = _type_refs
+    _type_ref_func_name = "model_type_ref"
+except ImportError:  # pragma: no cover
+    from pydantic._internal import _generate_schema  # noqa: E402
+
+    _type_ref_module = _generate_schema
+    _type_ref_func_name = "get_type_ref"
+
+initial_type_ref = getattr(_type_ref_module, _type_ref_func_name)
 
 
 def get_type_ref(
@@ -152,4 +174,4 @@ def get_type_ref(
     return type_ref
 
 
-_generate_schema.get_type_ref = get_type_ref
+setattr(_type_ref_module, _type_ref_func_name, get_type_ref)

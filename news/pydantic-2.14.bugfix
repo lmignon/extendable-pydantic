@@ -1,0 +1,11 @@
+Fix compatibility with recent pydantic versions (tested up to pydantic 2.14).
+
+- Since pydantic 2.11, the computation of the type references used into the
+  core schema has been moved from ``pydantic._internal._generate_schema.get_type_ref``
+  to ``pydantic._internal._type_refs.model_type_ref``. The patch ensuring the
+  uniqueness of the type reference of each extendable model now targets the
+  right function according to the installed pydantic version.
+- Stop using the deprecated ``FieldInfo.merge_field_infos`` method when
+  available (pydantic >= 2.12).
+- Fix a deprecation warning with python 3.14 when resolving PEP-604 unions
+  (``typing._UnionGenericAlias`` is deprecated).
