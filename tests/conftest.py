@@ -1,21 +1,16 @@
-import pytest
 import sys
+from typing import Annotated
+
+import pytest
 from extendable import context, main, registry
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, Depends, FastAPI
 from fastapi.testclient import TestClient
 
-if sys.version_info >= (3, 9):
-    from typing import Annotated
-else:
-    from typing_extensions import Annotated
-
-from fastapi import Depends
 from extendable_pydantic import ExtendableBaseModel
 
 skip_not_supported_version_for_generics = pytest.mark.skipif(
-    sys.version_info < (3, 8) or hasattr(sys, "pypy_translation_info"),
-    reason="generics only supported for python 3.8 and above and is not "
-    "supported on pypy",
+    hasattr(sys, "pypy_translation_info"),
+    reason="generics are not supported on pypy",
 )
 
 

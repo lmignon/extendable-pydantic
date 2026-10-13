@@ -1,19 +1,12 @@
 """Test Union."""
 
-import sys
-from typing import Union, Any, Optional
+from typing import Annotated, Any
 
-if sys.version_info >= (3, 9):
-    from typing import Annotated
-else:
-    from typing_extensions import Annotated
-
-from pydantic import Tag, Discriminator
+from pydantic import Discriminator, Tag
 from pydantic.main import BaseModel
+from pytest import fixture
 
 from extendable_pydantic import ExtendableModelMeta
-
-from pytest import fixture
 
 
 @fixture
@@ -30,7 +23,7 @@ def model_union_base_models():
     class CoordinateWithCountry(Coordinate):
         country: str = None
 
-    def _test_discriminate_coordinate_type(v: Any) -> Optional[str]:
+    def _test_discriminate_coordinate_type(v: Any) -> str | None:
         if isinstance(v, CoordinateWithCountry):
             return "coordinate_with_country"
         if isinstance(v, Coordinate):
@@ -49,15 +42,14 @@ def model_union_base_models():
         validate_assignment=True,
     ):
         name: str
-        coordinate: Optional[
+        coordinate: (
             Annotated[
-                Union[
-                    Annotated[Coordinate, Tag("coordinate")],
-                    Annotated[CoordinateWithCountry, Tag("coordinate_with_country")],
-                ],
+                Annotated[Coordinate, Tag("coordinate")]
+                | Annotated[CoordinateWithCountry, Tag("coordinate_with_country")],
                 Discriminator(_test_discriminate_coordinate_type),
             ]
-        ] = None
+            | None
+        ) = None
 
     return Person, Coordinate, CoordinateWithCountry
 

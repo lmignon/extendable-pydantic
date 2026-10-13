@@ -1,22 +1,23 @@
-from typing import Generic, List, TypeVar
+from typing import Generic, TypeVar
+
 from extendable_pydantic import ExtendableBaseModel
 
 try:
     from typing import Literal
 except ImportError:
-    from typing_extensions import Literal
+    from typing import Literal
 
 T = TypeVar("T")
 
 
 class SearchResult(ExtendableBaseModel, Generic[T]):
     total: int
-    results: List[T]
+    results: list[T]
 
 
 class Location(ExtendableBaseModel):
     kind: Literal["view", "bin"]
-    my_list: List[str]
+    my_list: list[str]
 
 
 class LocationExtended(Location, extends=True):

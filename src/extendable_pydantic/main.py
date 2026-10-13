@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import typing
 import warnings
-from typing import Any, Dict, List, Optional, cast, no_type_check
+from typing import Any, cast, no_type_check
 
 from extendable import context, main
 from extendable.main import ExtendableMeta
@@ -61,7 +61,7 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
         return ModelMetaclass.__new__(metacls, name, bases, namespace, **kwargs)
 
     @no_type_check
-    def __call__(cls, *args, **kwargs) -> "ExtendableMeta":
+    def __call__(cls, *args, **kwargs) -> ExtendableMeta:
         """Create the aggregated class in place of the original class definition.
 
         This method called at instance creation. The resulted instance
@@ -98,8 +98,8 @@ class ExtendableModelMeta(ExtendableMeta, ModelMetaclass):
 
     @classmethod
     def _wrap_pydantic_base_model_class_methods(
-        metacls, namespace: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        metacls, namespace: dict[str, Any]
+    ) -> dict[str, Any]:
         new_namespace = namespace
         from pydantic.warnings import PydanticDeprecationWarning
 
@@ -124,8 +124,8 @@ class RegistryListener(ExtendableRegistryListener):
 
     def before_init_registry(
         self,
-        registry: "ExtendableClassesRegistry",
-        module_matchings: Optional[List[str]] = None,
+        registry: ExtendableClassesRegistry,
+        module_matchings: list[str] | None = None,
     ) -> None:
         if module_matchings is not None:
             # ensure that the current module is loaded...
