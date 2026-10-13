@@ -34,11 +34,17 @@ loc.model_json_schema()
 #> {'title': 'Location', 'type': 'object', 'properties': {'lat': {'title': 'Lat', 'default': 0.1, 'type': 'number'}, 'lng': {'title': 'Lng', 'default': 10.1, 'type': 'number'}, 'name': {'title': 'Name', 'type': 'string'}}, 'required': ['name']}
 ```
 
+## Usage with FastAPI
+
+Extendable models can be used as request and response models or as dependencies
+of FastAPI routes. Any reference to an extendable model is resolved to the final
+class of the current registry when pydantic builds the schema. Therefore, the
+routes must be added to the application (`app.include_router(...)`) once the
+registry is initialized.
+
 ## Development
 
 `pip install -e .`
-
-Then, copy `extendable_pydantic_patcher.pth` to `$VIRTUAL_ENV/lib/python3.10/site-packages`.
 
 ## Release
 

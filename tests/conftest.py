@@ -1,4 +1,3 @@
-from extendable_pydantic import _patch  # noqa: F401
 import pytest
 import sys
 from extendable import context, main, registry
