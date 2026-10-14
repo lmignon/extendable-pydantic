@@ -48,9 +48,15 @@ registry is initialized.
 
 ## Release
 
+The version of the package is computed from the git tags (hatch-vcs) and the
+changelog is built from the news fragments (towncrier).
 
-* run ``bumpversion patch|minor|major --list
-* Check the new_version value returned by the previous command
-* run towncrier build.
-* Inspect and commit the updated HISTORY.rst.
-* git tag {new_version} ; git push --tags.
+* Each change worth mentioning into the changelog comes with a news fragment
+  into the `news` directory: `news/<issue number>.<type>`, or
+  `news/+<name>.<type>` for a change without issue, where `<type>` is one of
+  `feature`, `bugfix`, `doc`, `removal` or `misc`.
+* To release a new version, run the `release` workflow from the GitHub "Actions"
+  tab and choose the part of the version to increase (`patch`, `minor` or
+  `major`). Once the run is approved (required reviewers of the
+  `release-approval` environment), the workflow updates `HISTORY.rst`, tags the
+  release, publishes the package to PyPI and creates the GitHub release.
