@@ -151,8 +151,15 @@ class RegistryListener(ExtendableRegistryListener):
             if "__pydantic_core_schema__" in model.__dict__:
                 delattr(model, "__pydantic_core_schema__")
             model.__pydantic_complete__ = False
-        for model in models:
-            model.model_rebuild(force=True)
+        # Ensures that models are rebuild into the right registry
+        # by setting the registry passed as parameter as current
+        # registry
+        token = context.extendable_registry.set(registry)
+        try:
+            for model in models:
+                model.model_rebuild(force=True)
+        finally:
+            context.extendable_registry.reset(token)
 
 
 ExtendableClassesRegistry.listeners.append(RegistryListener())
