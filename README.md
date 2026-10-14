@@ -42,6 +42,8 @@ class of the current registry when pydantic builds the schema. Therefore, the
 routes must be added to the application (`app.include_router(...)`) once the
 registry is initialized.
 
+Requires FastAPI >= 0.138.
+
 ## Development
 
 `pip install -e .`
