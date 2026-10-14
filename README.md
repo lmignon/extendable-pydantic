@@ -34,17 +34,31 @@ loc.model_json_schema()
 #> {'title': 'Location', 'type': 'object', 'properties': {'lat': {'title': 'Lat', 'default': 0.1, 'type': 'number'}, 'lng': {'title': 'Lng', 'default': 10.1, 'type': 'number'}, 'name': {'title': 'Name', 'type': 'string'}}, 'required': ['name']}
 ```
 
+## Usage with FastAPI
+
+Extendable models can be used as request and response models or as dependencies
+of FastAPI routes. Any reference to an extendable model is resolved to the final
+class of the current registry when pydantic builds the schema. Therefore, the
+routes must be added to the application (`app.include_router(...)`) once the
+registry is initialized.
+
+Requires FastAPI >= 0.138.
+
 ## Development
 
 `pip install -e .`
 
-Then, copy `extendable_pydantic_patcher.pth` to `$VIRTUAL_ENV/lib/python3.10/site-packages`.
-
 ## Release
 
+The version of the package is computed from the git tags (hatch-vcs) and the
+changelog is built from the news fragments (towncrier).
 
-* run ``bumpversion patch|minor|major --list
-* Check the new_version value returned by the previous command
-* run towncrier build.
-* Inspect and commit the updated HISTORY.rst.
-* git tag {new_version} ; git push --tags.
+* Each change worth mentioning into the changelog comes with a news fragment
+  into the `news` directory: `news/<issue number>.<type>`, or
+  `news/+<name>.<type>` for a change without issue, where `<type>` is one of
+  `feature`, `bugfix`, `doc`, `removal` or `misc`.
+* To release a new version, run the `release` workflow from the GitHub "Actions"
+  tab and choose the part of the version to increase (`patch`, `minor` or
+  `major`). Once the run is approved (required reviewers of the
+  `release-approval` environment), the workflow updates `HISTORY.rst`, tags the
+  release, publishes the package to PyPI and creates the GitHub release.

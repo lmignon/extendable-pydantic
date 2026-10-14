@@ -1,0 +1,5 @@
+Fix the extendable models used as query, header or cookie parameters of a
+FastAPI route (e.g. ``Annotated[MyModel, Query()]``): the fields added by the
+extensions are now documented into the OpenAPI schema and parsed as the other
+fields of the model (e.g. a list from a single value, a header name from a
+field name). Each application uses the final classes of its own registry.

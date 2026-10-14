@@ -1,17 +1,14 @@
 """Test model inheritance."""
 
-from typing import List, Optional
-
 try:
     from typing import Literal
 except ImportError:
-    from typing_extensions import Literal
+    from typing import Literal
 
 from pydantic import Field
 from pydantic.main import BaseModel
 
-from extendable_pydantic import ExtendableBaseModel
-from extendable_pydantic import ExtendableModelMeta
+from extendable_pydantic import ExtendableBaseModel, ExtendableModelMeta
 
 
 def test_simple_inheritance(test_registry):
@@ -137,7 +134,7 @@ def test_issubclass(test_registry):
 
     class Location(BaseModel, metaclass=ExtendableModelMeta):
         kind: Literal["view", "bin"]
-        my_list: List[str]
+        my_list: list[str]
 
     test_registry.init_registry()
 
@@ -162,7 +159,7 @@ def test_nested_inherited_with_optional_not_required(test_registry):
 
     class Event(ExtendableBaseModel):
         location: Location
-        time: Optional[Time] = None
+        time: Time | None = None
 
     test_registry.init_registry()
 
@@ -191,7 +188,7 @@ def test_nested_inherited_with_field_info(test_registry):
 
     class Event(ExtendableBaseModel):
         location: Location
-        time: Optional[Time] = Field(None, description="The time of the event.")
+        time: Time | None = Field(None, description="The time of the event.")
 
     test_registry.init_registry()
 
