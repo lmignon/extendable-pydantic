@@ -31,7 +31,12 @@ def _resolve_annotation(annotation: Any) -> Any:
         resolved_type = _resolve_annotation(annotated_type)
         if resolved_type is annotated_type:
             return annotation
-        return Annotated[(resolved_type, *metadata)]
+        # nested Annotated are flattened: Annotated[Annotated[T, a], b] is
+        # Annotated[T, a, b]
+        resolved_annotation = resolved_type
+        for item in metadata:
+            resolved_annotation = Annotated[resolved_annotation, item]
+        return resolved_annotation
     if isinstance(annotation, ExtendableModelMeta):
         return _get_final_cls(annotation)
     return annotation
