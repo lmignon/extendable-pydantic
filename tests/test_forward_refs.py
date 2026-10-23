@@ -1,6 +1,6 @@
 """Test forward refs resolution."""
 
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -11,7 +11,7 @@ def test_simple_forward_ref(test_registry):
     class A(BaseModel, metaclass=ExtendableModelMeta):
         attr: int
         child: Optional["A"] = None
-        children: Optional[List["A"]] = None  # noqa: F821
+        children: list["A"] | None = None  # noqa: F821
 
     class AExt(A, extends=A):
         model_config = ConfigDict(from_attributes=True)

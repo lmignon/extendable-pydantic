@@ -1,11 +1,11 @@
 """Test generics model inheritance."""
 
-from typing import Generic, List, TypeVar, Optional
+from typing import Generic, TypeVar
 
 try:
     from typing import Literal
 except ImportError:
-    from typing_extensions import Literal
+    from typing import Literal
 
 from pydantic.main import BaseModel
 
@@ -20,11 +20,11 @@ def test_base():
 
     class SearchResult(BaseModel, Generic[T]):
         total: int
-        results: List[T]
+        results: list[T]
 
     class Location(BaseModel):
         kind: Literal["view", "bin"]
-        my_list: List[str]
+        my_list: list[str]
 
     class SearchLocationResult(SearchResult[Location]):
         pass
@@ -43,11 +43,11 @@ def test_generics_of_extended(test_registry):
 
     class SearchResult(BaseModel, Generic[T], metaclass=ExtendableModelMeta):
         total: int
-        results: List[T]
+        results: list[T]
 
     class Location(BaseModel, metaclass=ExtendableModelMeta):
         kind: Literal["view", "bin"]
-        my_list: List[str]
+        my_list: list[str]
 
     class SearchLocationResult(SearchResult[Location]):
         pass
@@ -84,11 +84,11 @@ def test_extended_generics(test_registry):
 
     class SearchResult(BaseModel, Generic[T], metaclass=ExtendableModelMeta):
         total: int
-        results: List[T]
+        results: list[T]
 
     class Location(BaseModel, metaclass=ExtendableModelMeta):
         kind: Literal["view", "bin"]
-        my_list: List[str]
+        my_list: list[str]
 
     class SearchLocationResult(SearchResult[Location]):
         pass
@@ -125,7 +125,7 @@ def test_generic_with_nested_extended(test_registry):
 
     class SearchResult(ExtendableBaseModel, Generic[T]):
         total: int
-        results: List[T]
+        results: list[T]
 
     class Level(ExtendableBaseModel):
         val: int
@@ -138,7 +138,7 @@ def test_generic_with_nested_extended(test_registry):
 
     class Level1(ExtendableBaseModel):
         val: int
-        level11: Optional[Level11]
+        level11: Level11 | None
 
     class Level11Extended(Level11, extends=True):
         name: str = "level11"
@@ -148,7 +148,7 @@ def test_generic_with_nested_extended(test_registry):
 
     class LevelExtended(Level, extends=True):
         name: str = "level"
-        level1: Optional[Level1]
+        level1: Level1 | None
 
     test_registry.init_registry()
 
@@ -185,11 +185,11 @@ def test_extended_generics_of_extended_model(test_registry):
 
     class SearchResult(BaseModel, Generic[T], metaclass=ExtendableModelMeta):
         total: int
-        results: List[T]
+        results: list[T]
 
     class Location(BaseModel, metaclass=ExtendableModelMeta):
         kind: Literal["view", "bin"]
-        my_list: List[str]
+        my_list: list[str]
 
     class SearchLocationResult(SearchResult[Location]):
         pass

@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+
 from .main import ExtendableModelMeta
 
 

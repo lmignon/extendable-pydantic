@@ -1,9 +1,9 @@
-from typing import Generic, List, TypeVar
+from typing import Generic, TypeVar
 
 try:
     from typing import Literal
 except ImportError:
-    from typing_extensions import Literal
+    from typing import Literal
 
 from extendable_pydantic import ExtendableBaseModel
 
@@ -58,11 +58,11 @@ def test_generics_of_extended_base_model(test_registry):
 
     class SearchResult(ExtendableBaseModel, Generic[T]):
         total: int
-        results: List[T]
+        results: list[T]
 
     class Location(ExtendableBaseModel):
         kind: Literal["view", "bin"]
-        my_list: List[str]
+        my_list: list[str]
 
     class SearchLocationResult(SearchResult[Location]):
         pass
@@ -95,7 +95,7 @@ def test_generics_of_extended_base_model(test_registry):
 @skip_not_supported_version_for_generics
 def test_generics_of_extended_base_model_import_module(test_registry):
     """In this test we check that generics of extended works."""
-    from .modtest.generics import SearchLocationResult, Location
+    from .modtest.generics import Location, SearchLocationResult
 
     test_registry.init_registry(["tests.modtest.generics"])
 
