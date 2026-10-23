@@ -1,3 +1,41 @@
+1.5.0 (2026-10-23)
+==================
+
+Features
+--------
+
+- Rely on the pydantic public API to resolve extendable models.
+
+  As a result:
+
+  - the monkey patches of pydantic internals (type refs) are removed, as well as
+    the ``extendable_pydantic_patcher.pth`` file and the dependency on ``wrapt``;
+    fastapi is only patched to resolve the extendable models used as query,
+    header or cookie parameters;
+  - the ``extendable_pydantic.utils`` module is removed.
+
+  This requires ``extendable > 1.3.0`` (the classes built by the registry keep
+  the qualified name of the original class).
+
+
+Bugfixes
+--------
+
+- Fix compatibility with recent pydantic versions (tested up to pydantic 2.14).
+- Fix the extendable models used as query, header or cookie parameters of a
+  FastAPI route (e.g. ``Annotated[MyModel, Query()]``): the fields added by the
+  extensions are now documented into the OpenAPI schema and parsed as the other
+  fields of the model (e.g. a list from a single value, a header name from a
+  field name). Each application uses the final classes of its own registry.
+
+
+Deprecations and Removals
+-------------------------
+
+- Drop support for python < 3.10 (python 3.8 and 3.9 have reached their end of life)
+  and require pydantic >= 2.9. Add support for python 3.14.
+
+
 1.4.1 (2025-04-16)
 ==================
 
