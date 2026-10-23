@@ -20,15 +20,17 @@ dependencies = [
 ]
 requires-python = ">=3.10"
 
-[project.optional-dependencies]
+[dependency-groups]
+# development tools: not published into the metadata of the package
 test = [
     "pytest",
     "coverage[toml]",
     "fastapi>=0.138",
     "httpx",
 ]
-mypy = [
+typing = [
     "mypy>=1.4.1",
+    "fastapi",
 ]
 
 [project.urls]
